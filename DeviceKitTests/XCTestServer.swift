@@ -2,6 +2,7 @@ import FlyingFox
 import FlyingSocks
 import Foundation
 import os
+import XCRSControlKit
 
 extension String {
     /// Converts the string to a UInt16 port number.
@@ -87,6 +88,14 @@ final class XCTestServer {
     /// JSON-RPC dispatcher for routing method calls.
     private let dispatcher: JSONRPCDispatcher
 
+    private let controlKitCapabilities: XCRSControlKitCapabilities = {
+        #if os(tvOS)
+        return .standard(for: .tvOS)
+        #else
+        return .standard(for: .iOS)
+        #endif
+    }()
+
     /// Initializes the WebSocket server.
     init() {
         self.dispatcher = JSONRPCDispatcher()
@@ -106,6 +115,7 @@ final class XCTestServer {
         )
 
         logger.info("Starting JSON-RPC server on \(self.localhost):\(port)")
+        logger.info("ControlKit capabilities: \(self.controlKitCapabilities.values.map(\.rawValue).sorted().joined(separator: ","))")
 
         // WebSocket endpoint for JSON-RPC
         let messageHandler = JSONRPCMessageHandler(dispatcher: dispatcher)
